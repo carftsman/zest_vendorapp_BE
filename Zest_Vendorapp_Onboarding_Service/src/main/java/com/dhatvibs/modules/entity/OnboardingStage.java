@@ -1,0 +1,50 @@
+package com.dhatvibs.modules.entity;
+
+public enum OnboardingStage {
+	 
+    IN_PROGRESS,
+ 
+    OWNER_REGISTERED,
+
+    LOGGED_IN,
+ 
+    RESTAURANT_CREATED,
+
+    ADDRESS_ADDED,
+
+    DELIVERY_AREA_SET,
+
+    CUISINES_SELECTED,
+ 
+    OPERATING_HOURS_SET,
+ 
+    RESTAURANT_PHOTOS_UPLOADED,
+
+    MENU_PHOTOS_UPLOADED,
+ 
+    FSSAI_UPLOADED,
+
+    PAN_UPLOADED,
+
+    GST_UPLOADED,
+ 
+    BANK_DETAILS_ADDED,
+
+    UPI_ADDED,
+ 
+    DOCUMENTS_VERIFIED,
+
+    DOCUMENTS_REJECTED,
+ 
+    APPLICATION_SUBMITTED,
+
+    UNDER_REVIEW,
+
+    APPROVED,
+
+    REJECTED,
+ 
+    COMPLETED
+
+}
+ 
