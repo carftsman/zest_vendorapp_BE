@@ -16,9 +16,10 @@ public class JwtUtil {
     private final long ACCESS_TOKEN_VALIDITY = 1000 * 60 * 15; // 15 min
     private final long REFRESH_TOKEN_VALIDITY = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-    public String generateAccessToken(String id) {
+    public String generateAccessToken(String ownerId , String restaurantId) {
         return Jwts.builder()
-                .setSubject(id)
+                .setSubject(ownerId)
+                .claim("restaurantId", restaurantId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_VALIDITY))
                // .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
@@ -27,9 +28,10 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRefreshToken(String id) {
+    public String generateRefreshToken(String ownerId, String restaurantId) {
         return Jwts.builder()
-                .setSubject(id)
+                .setSubject(ownerId)
+                .claim("restaurantId", restaurantId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_VALIDITY))
                 .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256))

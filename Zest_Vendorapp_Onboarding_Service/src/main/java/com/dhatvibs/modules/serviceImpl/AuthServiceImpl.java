@@ -15,7 +15,9 @@ import com.dhatvibs.modules.dto.VerifyOtpApiResponse;
 import com.dhatvibs.modules.dto.VerifyOtpData;
 import com.dhatvibs.modules.entity.OnboardingStage;
 import com.dhatvibs.modules.entity.Owner;
+import com.dhatvibs.modules.entity.Restaurant;
 import com.dhatvibs.modules.repository.OwnerRepository;
+import com.dhatvibs.modules.repository.RestaurantRepository;
 import com.dhatvibs.modules.security.JwtUtil;
 import com.dhatvibs.modules.service.AuthService;
 
@@ -25,6 +27,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private OwnerRepository ownerRepository;
+    
+    @Autowired
+    private RestaurantRepository restaurantRepository;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -40,24 +45,24 @@ public class AuthServiceImpl implements AuthService {
         SendOtpApiResponse<SendOtpResponse> apiResponse = new SendOtpApiResponse<>();
 
         try {
-            // ✅ 1. Null / Empty check
+            //  Null / Empty check
             if (phone == null || phone.trim().isEmpty()) {
                 apiResponse.setSuccess(false);
                 apiResponse.setMessage("Phone number is required");
                 return apiResponse;
             }
 
-            // ✅ 2. Normalize phone
+            //  Normalize phone
             String normalizedPhone = phone.trim();
 
-            // ✅ 3. Validate format
+            //Validate format
             if (!normalizedPhone.matches("^[6-9]\\d{9}$")) {
                 apiResponse.setSuccess(false);
                 apiResponse.setMessage("Invalid phone number. Must be 10 digits and start with 6-9");
                 return apiResponse;
             }
 
-            // ✅ 4. Fetch or create user
+            //  Fetch or create user
             Owner owner = ownerRepository.findByPhone(normalizedPhone)
                     .orElseGet(() -> {
                         Owner newOwner = new Owner();
@@ -67,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
                         return newOwner;
                     });
 
-            // ✅ 5. Prevent OTP spam
+            //Prevent OTP spam
             if (owner.getOtpExpiry() != null &&
                 owner.getOtpExpiry().isAfter(LocalDateTime.now().minusSeconds(30))) {
 
@@ -76,13 +81,13 @@ public class AuthServiceImpl implements AuthService {
                 return apiResponse;
             }
 
-            // ✅ 6. Generate OTP
+            // Generate OTP
             owner.setOtp(STATIC_OTP);
             owner.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
 
             ownerRepository.save(owner);
 
-            // ✅ 7. Prepare success response
+            //Prepare success response
             SendOtpResponse response = new SendOtpResponse();
             response.setPhone(normalizedPhone);
             response.setOtpSent("OTP sent successfully");
@@ -94,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
             return apiResponse;
 
         } catch (Exception e) {
-            // ✅ 8. Handle unexpected errors
+            // Handle unexpected errors
             apiResponse.setSuccess(false);
             apiResponse.setMessage("Something went wrong: " + e.getMessage());
             return apiResponse;
@@ -134,6 +139,18 @@ public class AuthServiceImpl implements AuthService {
             //Fetch user
             Owner owner = ownerRepository.findByPhone(normalizedPhone)
                     .orElse(null);
+            
+            String restaurantId = null;
+            
+          //Fetch Restaurant
+            Restaurant restaurant = restaurantRepository.findByOwnerId(owner.getId()).orElse(null);
+
+            if (restaurant != null) {
+                restaurantId = restaurant.getId().toString();
+            } else {
+                restaurantId = ""; // or null (your choice)
+            }
+            
 
             if (owner == null) {
                 response.setSuccess(false);
@@ -174,8 +191,8 @@ public class AuthServiceImpl implements AuthService {
             owner.setOnboardingStage(OnboardingStage.IN_PROGRESS); // safer than failing enum
 
             //  Generate tokens
-            String accessToken = jwtUtil.generateAccessToken(owner.getId().toString());
-            String refreshToken = jwtUtil.generateRefreshToken(owner.getId().toString());
+            String accessToken = jwtUtil.generateAccessToken(owner.getId().toString() ,restaurantId);
+            String refreshToken = jwtUtil.generateRefreshToken(owner.getId().toString(),restaurantId);
 
             owner.setRefreshToken(refreshToken);
             owner.setRefreshTokenExpiry(LocalDateTime.now().plusDays(7));
@@ -211,13 +228,26 @@ public class AuthServiceImpl implements AuthService {
 
         Owner owner = ownerRepository.findByPhone(phone)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        
+        
+        String restaurantId = null;
+        
+      //Fetch Restaurant
+        Restaurant restaurant = restaurantRepository.findByOwnerId(owner.getId()).orElse(null);
+
+        if (restaurant != null) {
+            restaurantId = restaurant.getId().toString();
+        } else {
+            restaurantId = ""; // or null (your choice)
+        }
 
         if (!Boolean.TRUE.equals(owner.getPhoneVerified())) {
             throw new RuntimeException("Phone not verified");
         }
 
-        String accessToken = jwtUtil.generateAccessToken(phone);
-        String refreshToken = jwtUtil.generateRefreshToken(phone);
+        String accessToken = jwtUtil.generateAccessToken(owner.getId().toString() ,restaurantId);
+        String refreshToken = jwtUtil.generateRefreshToken(owner.getId().toString() ,restaurantId);
 
         owner.setRefreshToken(refreshToken);
         owner.setRefreshTokenExpiry(LocalDateTime.now().plusDays(7));
@@ -260,6 +290,17 @@ public class AuthServiceImpl implements AuthService {
 
         Owner owner = ownerRepository.findByPhone(phone)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        String restaurantId = null;
+        
+      //Fetch Restaurant
+        Restaurant restaurant = restaurantRepository.findByOwnerId(owner.getId()).orElse(null);
+
+        if (restaurant != null) {
+            restaurantId = restaurant.getId().toString();
+        } else {
+            restaurantId = ""; // or null (your choice)
+        }
 
         if (!refreshToken.equals(owner.getRefreshToken())) {
             throw new RuntimeException("Invalid refresh token");
@@ -269,9 +310,9 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Refresh token expired");
         }
 
-        // ✅ Rotate refresh token (VERY IMPORTANT)
-        String newAccessToken = jwtUtil.generateAccessToken(phone);
-        String newRefreshToken = jwtUtil.generateRefreshToken(phone);
+        //Rotate refresh token (VERY IMPORTANT)
+        String newAccessToken = jwtUtil.generateAccessToken(owner.getId().toString() ,restaurantId);
+        String newRefreshToken = jwtUtil.generateRefreshToken(owner.getId().toString() ,restaurantId);
 
         owner.setRefreshToken(newRefreshToken);
         owner.setRefreshTokenExpiry(LocalDateTime.now().plusDays(7));
