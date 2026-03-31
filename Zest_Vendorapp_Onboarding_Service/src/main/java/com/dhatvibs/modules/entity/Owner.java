@@ -24,7 +24,7 @@ public class Owner {
     @GeneratedValue(strategy = GenerationType.UUID)
     
     private UUID id; 
-    @Column(nullable = false) 
+    @Column(nullable = true) 
     
     private String fullName; 
     @Column(nullable = false, unique = true) 
@@ -55,7 +55,10 @@ public class Owner {
     @Enumerated(EnumType.STRING) 
 
     private OnboardingStage onboardingStage; 
-
+    
+    private String refreshToken;
+    private LocalDateTime refreshTokenExpiry;
+    
     private LocalDateTime createdAt; 
 
     private LocalDateTime updatedAt; 

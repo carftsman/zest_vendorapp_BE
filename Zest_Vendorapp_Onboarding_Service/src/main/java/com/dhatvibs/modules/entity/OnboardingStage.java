@@ -1,6 +1,7 @@
 package com.dhatvibs.modules.entity;
 
 public enum OnboardingStage {
+	IS_PHONE_VERIFIED,
 	 
     IN_PROGRESS,
  

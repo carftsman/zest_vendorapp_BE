@@ -12,4 +12,5 @@ public class ZestVendorappRegistryApplication {
 		SpringApplication.run(ZestVendorappRegistryApplication.class, args);
 	}
 
+
 }
