@@ -18,6 +18,8 @@ public enum OnboardingStage {
     CUISINES_SELECTED,
  
     OPERATING_HOURS_SET,
+    
+    RESTAURANT_TYPE_SELECTED,
  
     RESTAURANT_PHOTOS_UPLOADED,
 

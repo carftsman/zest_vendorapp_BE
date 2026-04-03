@@ -286,7 +286,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse refreshToken(String refreshToken) {
 
-        String phone = jwtUtil.extractPhone(refreshToken);
+       // String phone = jwtUtil.extractPhone(refreshToken);
+    	String phone=jwtUtil.extractOwnerId(refreshToken);
 
         Owner owner = ownerRepository.findByPhone(phone)
                 .orElseThrow(() -> new RuntimeException("User not found"));
